@@ -9,6 +9,23 @@ Colourful **Vestaboard Note** (15×3) that says **Happy Birthday** for people yo
 3. Choose **Display mode**
 4. **Save Changes**
 
+## Import from a text file
+
+1. Create a file on the **FiestaBoard host**, e.g. `/data/birthdays.txt`
+2. Use this format (**one person per line**):
+
+```
+Alice Smith, 15/03
+Bob Jones, 22/06
+Carol White, 25/12
+```
+
+3. In **Integrations → Birthday Wishes**, set **Import from text file (path)** to that path  
+4. **Save Changes**
+
+If the file is readable, it **overrides** the Birthdays list box.  
+A sample file is in the plugin repo: `examples/birthdays.txt`.
+
 ## Birthdays list format
 
 ```

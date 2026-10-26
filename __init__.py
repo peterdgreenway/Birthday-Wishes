@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.plugins.base import PluginBase, PluginResult
@@ -154,6 +155,29 @@ def _month_from_name(name: str) -> Optional[int]:
     return months.get(name)
 
 
+
+def _load_birthdays_text(config: Dict[str, Any]) -> str:
+    """Load birthday list from optional host file path, else text setting.
+
+    Import format (one person per line):
+        Alice Smith, 15/03
+        Bob Jones, 22/06
+
+    Lines starting with # are comments. If birthdays_file is set and readable,
+    it takes priority over the birthdays text box.
+    """
+    file_path = (config.get("birthdays_file") or "").strip()
+    if file_path:
+        try:
+            p = Path(file_path).expanduser()
+            if p.is_file():
+                return p.read_text(encoding="utf-8", errors="replace")
+            logger.warning("birthdays_file not found or not a file: %s", file_path)
+        except OSError as e:
+            logger.warning("Could not read birthdays_file %s: %s", file_path, e)
+    return config.get("birthdays", "") or ""
+
+
 def _days_until(day: int, month: int, today: date) -> int:
     try:
         this_year = date(today.year, month, day)
@@ -241,7 +265,7 @@ class BirthdayWishesPlugin(PluginBase):
 
     def fetch_data(self) -> PluginResult:
         try:
-            raw = self.config.get("birthdays", "") or ""
+            raw = _load_birthdays_text(self.config)
             mode = self.config.get("display_mode", "today_or_next")
             today = datetime.now(timezone.utc).date()
 
@@ -249,7 +273,7 @@ class BirthdayWishesPlugin(PluginBase):
             if not people:
                 return PluginResult(
                     available=False,
-                    error="No birthdays configured — add lines like: Alice Smith, 15/03",
+                    error="No birthdays configured — use list or file (Alice Smith, 15/03)",
                 )
 
             enriched = []

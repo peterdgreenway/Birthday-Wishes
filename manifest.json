@@ -1,8 +1,8 @@
 {
   "id": "birthday_wishes",
   "name": "Birthday Wishes",
-  "version": "1.0.0",
-  "description": "Happy Birthday on a Vestaboard Note for multiple people. Colourful 15-tile rows; forename, surname, day and month as separate variables.",
+  "version": "1.1.0",
+  "description": "Happy Birthday on a Vestaboard Note. Import a text file (Alice Smith, 15/03) or paste the list.",
   "author": "peterdgreenway",
   "icon": "gift",
   "category": "data",
@@ -34,10 +34,16 @@
   "settings_schema": {
     "type": "object",
     "properties": {
+      "birthdays_file": {
+        "type": "string",
+        "title": "Import from text file (path)",
+        "description": "Optional path on the FiestaBoard host to a .txt file. Format: Alice Smith, 15/03 per line. Overrides the list box when readable.",
+        "default": ""
+      },
       "birthdays": {
         "type": "string",
-        "title": "Birthdays list",
-        "description": "One person per line: Forename Surname, DD/MM (or YYYY-MM-DD). Example: Alice Smith, 15/03",
+        "title": "Birthdays list (or paste file contents)",
+        "description": "One person per line: Alice Smith, 15/03. Used when no import file is set.",
         "default": "Alice Smith, 15/03\nBob Jones, 22/06"
       },
       "display_mode": {
