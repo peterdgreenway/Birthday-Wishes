@@ -1,0 +1,137 @@
+{
+  "id": "birthday_wishes",
+  "name": "Birthday Wishes",
+  "version": "1.0.0",
+  "description": "Happy Birthday on a Vestaboard Note for multiple people. Colourful 15-tile rows; forename, surname, day and month as separate variables.",
+  "author": "peterdgreenway",
+  "icon": "gift",
+  "category": "data",
+  "repository": "https://github.com/peterdgreenway/fiestaboard-plugin--birthday-wishes",
+  "documentation": "docs/SETUP.md",
+  "min_refresh_seconds": 300,
+  "teaser": "{65}{68} HAPPY     ",
+  "previews": [
+    {
+      "device_type": "note",
+      "rows": [
+        "{65}{68} HAPPY     ",
+        "BIRTHDAY       ",
+        "    ALICE      "
+      ]
+    },
+    {
+      "device_type": "flagship",
+      "rows": [
+        "{65}{68} HAPPY BIRTHDAY  ",
+        "Alice                 ",
+        "{65}{63}{68}               ",
+        "                      ",
+        "                      ",
+        "                      "
+      ]
+    }
+  ],
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "birthdays": {
+        "type": "string",
+        "title": "Birthdays list",
+        "description": "One person per line: Forename Surname, DD/MM (or YYYY-MM-DD). Example: Alice Smith, 15/03",
+        "default": "Alice Smith, 15/03\nBob Jones, 22/06"
+      },
+      "display_mode": {
+        "type": "string",
+        "title": "Display mode",
+        "description": "today_only = only when it is someone's birthday; today_or_next = also show next upcoming",
+        "enum": [
+          "today_only",
+          "today_or_next"
+        ],
+        "default": "today_or_next"
+      },
+      "refresh_seconds": {
+        "type": "integer",
+        "title": "Refresh Interval (seconds)",
+        "default": 3600,
+        "minimum": 300,
+        "maximum": 86400
+      }
+    }
+  },
+  "variables": {
+    "simple": [
+      "forename",
+      "surname",
+      "full_name",
+      "day",
+      "month",
+      "month_name",
+      "month_name_short",
+      "is_today",
+      "has_birthday",
+      "days_until",
+      "color",
+      "color2",
+      "note_row1",
+      "note_row2",
+      "note_row3",
+      "note_block",
+      "happy_birthday",
+      "happy_block",
+      "happy_row1",
+      "happy_row2",
+      "happy_row3",
+      "people_count",
+      "last_updated"
+    ],
+    "arrays": {
+      "people": {
+        "label_field": "full_name",
+        "item_fields": [
+          "forename",
+          "surname",
+          "full_name",
+          "day",
+          "month",
+          "month_name",
+          "days_until",
+          "is_today"
+        ]
+      }
+    }
+  },
+  "max_lengths": {
+    "forename": 20,
+    "surname": 20,
+    "full_name": 40,
+    "day": 2,
+    "month": 2,
+    "month_name": 10,
+    "month_name_short": 3,
+    "is_today": 3,
+    "has_birthday": 3,
+    "days_until": 4,
+    "color": 4,
+    "color2": 4,
+    "note_row1": 22,
+    "note_row2": 15,
+    "note_row3": 15,
+    "note_block": 70,
+    "happy_birthday": 45,
+    "happy_block": 45,
+    "happy_row1": 15,
+    "happy_row2": 15,
+    "happy_row3": 15,
+    "people_count": 4,
+    "last_updated": 20,
+    "people.*.forename": 20,
+    "people.*.surname": 20,
+    "people.*.full_name": 40,
+    "people.*.day": 2,
+    "people.*.month": 2,
+    "people.*.month_name": 10,
+    "people.*.days_until": 4,
+    "people.*.is_today": 3
+  }
+}
