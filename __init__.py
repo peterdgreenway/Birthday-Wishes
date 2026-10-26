@@ -43,31 +43,95 @@ def _pad(s: str, width: int = NOTE_WIDTH) -> str:
     return (s or "")[:width].ljust(width)
 
 
+
+def _looks_like_date_only(s: str) -> bool:
+    """True if string looks like a date with no person name."""
+    s = (s or "").strip()
+    if not s:
+        return False
+    if re.match(r"^\d{1,2}[/-]\d{1,2}", s):
+        return True
+    if re.match(r"^\d{4}-\d{1,2}-\d{1,2}$", s):
+        return True
+    if re.match(r"^\d{1,2}\s+[A-Za-z]+", s):
+        return True
+    if re.match(r"^[A-Za-z]+\s+\d{1,2}", s):
+        return True
+    return False
+
+
+def _entry_has_date(s: str) -> bool:
+    """True if chunk already includes a date-like token after a name."""
+    s = (s or "").strip()
+    if "," in s:
+        return _looks_like_date_only(s.split(",", 1)[1].strip())
+    # trailing date patterns
+    if re.search(r"\d{1,2}[/-]\d{1,2}", s):
+        return True
+    return False
+
+
 def _parse_people(raw: str) -> List[Dict[str, Any]]:
     """
-    Parse birthday list. Accepted lines:
+    Parse birthday list. Supports:
 
-      Alice Smith, 15/03
-      Bob Jones, 1990-03-22
-      Carol, 3-15
-      Dave Brown | 25 December
+      Multi-line:
+        Alice Smith, 15/03
+        Bob Jones, 22/06
 
-    Returns list of dicts with forename, surname, day, month, sort_key.
+      Continuous string (entries separated by |):
+        Alice Smith, 15/03 | Bob Jones, 22/06 | Carol White, 25/12
+
+      Name/date separators: comma preferred (Alice Smith, 15/03).
+      A single pipe between name and date is still accepted when the
+      entry has no comma: Dave Brown | 25 December
+
+    Returns list of dicts with forename, surname, day, month, etc.
     """
     people: List[Dict[str, Any]] = []
     if not raw or not str(raw).strip():
         return people
 
+    # Normalise: strip comment lines, then split into entries.
+    # Entries may be newline-separated and/or | -separated.
+    chunks: List[str] = []
     for line in str(raw).splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
+        chunks.append(line)
+    blob = " | ".join(chunks) if chunks else ""
+
+    # Split continuous string on | when both sides look like full entries
+    # (contain a comma, or month name). Otherwise treat | as name|date.
+    entries: List[str] = []
+    parts = [p.strip() for p in blob.split("|") if p.strip()]
+    i = 0
+    while i < len(parts):
+        part = parts[i]
+        # If this part already has name+date (comma or "15 March" style), it is an entry
+        if "," in part or _entry_has_date(part):
+            entries.append(part)
+            i += 1
+        elif i + 1 < len(parts) and _looks_like_date_only(parts[i + 1]):
+            # name | date
+            entries.append(f"{part} | {parts[i + 1]}")
+            i += 2
+        else:
+            # Standalone fragment — try as entry anyway
+            entries.append(part)
+            i += 1
+
+    for line in entries:
+        line = line.strip()
+        if not line:
+            continue
 
         # Split name from date
-        if "|" in line:
-            name_part, date_part = line.split("|", 1)
-        elif "," in line:
+        if "," in line:
             name_part, date_part = line.split(",", 1)
+        elif "|" in line:
+            name_part, date_part = line.split("|", 1)
         else:
             continue
 

@@ -83,3 +83,11 @@ def test_fetch():
     assert len(r.data["note_row2"]) == 15
     assert len(r.data["note_row3"]) == 15
     assert "Happy Birthday" in r.data["happy_block"]
+
+
+def test_parse_pipe_separated():
+    people = mod._parse_people("Alice Smith, 15/03 | Bob Jones, 22/06 | Carol White, 25/12")
+    assert len(people) == 3
+    assert people[0]["forename"] == "Alice"
+    assert people[1]["day"] == 22
+    assert people[2]["month"] == 12

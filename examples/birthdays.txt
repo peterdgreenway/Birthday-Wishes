@@ -1,8 +1,5 @@
 # Birthday Wishes import file
 # Format: Forename Surname, DD/MM
-# One person per line. Lines starting with # are ignored.
+# Either one person per line, OR a continuous string with | between entries
 
-Alice Smith, 15/03
-Bob Jones, 22/06
-Carol White, 25/12
-Dave Brown, 01/01
+Alice Smith, 15/03 | Bob Jones, 22/06 | Carol White, 25/12 | Dave Brown, 01/01

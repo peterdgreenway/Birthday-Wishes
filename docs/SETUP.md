@@ -26,6 +26,16 @@ Carol White, 25/12
 If the file is readable, it **overrides** the Birthdays list box.  
 A sample file is in the plugin repo: `examples/birthdays.txt`.
 
+## Continuous string (pipe-separated)
+
+You can enter everyone on one line, with **`|`** between people:
+
+```
+Alice Smith, 15/03 | Bob Jones, 22/06 | Carol White, 25/12
+```
+
+Works in the **Birthdays list** box and in an imported text file.
+
 ## Birthdays list format
 
 ```

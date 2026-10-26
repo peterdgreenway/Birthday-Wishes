@@ -1,8 +1,8 @@
 {
   "id": "birthday_wishes",
   "name": "Birthday Wishes",
-  "version": "1.1.0",
-  "description": "Happy Birthday on a Vestaboard Note. Import a text file (Alice Smith, 15/03) or paste the list.",
+  "version": "1.2.0",
+  "description": "Happy Birthday on a Vestaboard Note. Enter people as lines or a continuous string separated by |. Format: Alice Smith, 15/03",
   "author": "peterdgreenway",
   "icon": "gift",
   "category": "data",
@@ -37,14 +37,14 @@
       "birthdays_file": {
         "type": "string",
         "title": "Import from text file (path)",
-        "description": "Optional path on the FiestaBoard host to a .txt file. Format: Alice Smith, 15/03 per line. Overrides the list box when readable.",
+        "description": "Optional path to a .txt file on the host. Same format: one entry per line, or a continuous string with | between entries (Alice Smith, 15/03 | Bob Jones, 22/06). Overrides the list box when readable.",
         "default": ""
       },
       "birthdays": {
         "type": "string",
-        "title": "Birthdays list (or paste file contents)",
-        "description": "One person per line: Alice Smith, 15/03. Used when no import file is set.",
-        "default": "Alice Smith, 15/03\nBob Jones, 22/06"
+        "title": "Birthdays list (lines or | -separated)",
+        "description": "People and birthdays. Multi-line or one continuous string with | between entries. Example: Alice Smith, 15/03 | Bob Jones, 22/06",
+        "default": "Alice Smith, 15/03 | Bob Jones, 22/06 | Carol White, 25/12"
       },
       "display_mode": {
         "type": "string",
