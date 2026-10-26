@@ -91,3 +91,16 @@ def test_parse_pipe_separated():
     assert people[0]["forename"] == "Alice"
     assert people[1]["day"] == 22
     assert people[2]["month"] == 12
+
+
+def test_next_birthday_block():
+    msg = mod._next_birthday_block("Alice", 45)
+    assert msg == "next birthday is Alice in 45 days"
+    assert "1 day" in mod._next_birthday_block("Bob", 1)
+
+
+def test_date_formats():
+    from datetime import date
+    d = date(2026, 11, 9)
+    assert mod._format_short_date(d) == "09-Nov-2026"
+    assert mod._format_long_date(d) == "9 November 2026"

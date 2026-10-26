@@ -106,3 +106,36 @@ curl -X POST http://localhost:4420/api/plugins/install \
   -H "Content-Type: application/json" \
   -d '{"repository": "https://github.com/peterdgreenway/fiestaboard-plugin--birthday-wishes"}'
 ```
+
+
+## Today vs next birthday
+
+| Situation | `display_block` / behaviour |
+|-----------|------------------------------|
+| Someone’s birthday **today** | `Happy Birthday Alice` + celebratory Note |
+| **No** birthday today | `next birthday is Alice in 45 days` |
+
+```
+{{birthday_wishes.display_block}}
+{{birthday_wishes.next_birthday_block}}
+{{birthday_wishes.happy_block}}
+```
+
+## Days until & date formats
+
+For the person currently shown:
+
+| Variable | Example |
+|----------|---------|
+| `days_until` | `45` |
+| `date_short` | `09-Nov-2026` |
+| `date_long` | `9 November 2026` |
+
+For **each** person in the list (array):
+
+```
+{{birthday_wishes.people.0.forename}}
+{{birthday_wishes.people.0.days_until}}
+{{birthday_wishes.people.0.date_short}}
+{{birthday_wishes.people.0.date_long}}
+```

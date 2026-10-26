@@ -257,6 +257,31 @@ def _days_until(day: int, month: int, today: date) -> int:
     return (next_year - today).days
 
 
+
+def _next_occurrence(day: int, month: int, today: date) -> date:
+    """Return the next calendar date for this birthday on or after today."""
+    try:
+        this_year = date(today.year, month, day)
+    except ValueError:
+        this_year = date(today.year, month, min(day, 28))
+    if this_year >= today:
+        return this_year
+    try:
+        return date(today.year + 1, month, day)
+    except ValueError:
+        return date(today.year + 1, month, min(day, 28))
+
+
+def _format_short_date(d: date) -> str:
+    """e.g. 09-Nov-2026"""
+    return d.strftime("%d-%b-%Y")
+
+
+def _format_long_date(d: date) -> str:
+    """e.g. 9 November 2026 (day without leading zero)"""
+    return f"{d.day} {d.strftime('%B')} {d.year}"
+
+
 def _format_note(
     forename: str,
     is_today: bool,
@@ -264,44 +289,61 @@ def _format_note(
     colour_idx: int = 0,
 ) -> Tuple[str, str, str, str, str, str]:
     """
-    Attractive 15×3 Birthday Note.
+    Attractive 15×3 Note.
 
+    Today:
       {65}{68} HAPPY
       BIRTHDAY
          ALICE
+
+    Not today (next):
+      {65}{68} NEXT
+      BIRTHDAY ALICE
+      IN 45 DAYS
     """
     c1, c2 = COLOUR_SETS[colour_idx % len(COLOUR_SETS)]
-    name = (forename or "FRIEND").upper().strip()[:NOTE_WIDTH]
+    name = (forename or "FRIEND").upper().strip()
 
-    line_happy = " HAPPY"
-    row1 = f"{c1}{c2}{line_happy[:13].ljust(13)}"
-    while _tile_len(row1) > NOTE_WIDTH:
-        line_happy = line_happy[:-1]
+    if is_today:
+        line_happy = " HAPPY"
         row1 = f"{c1}{c2}{line_happy[:13].ljust(13)}"
-
-    row2 = _pad("BIRTHDAY")
-    # Center forename on row 3 when short
-    if len(name) < NOTE_WIDTH:
-        row3 = name.center(NOTE_WIDTH)[:NOTE_WIDTH]
+        while _tile_len(row1) > NOTE_WIDTH:
+            line_happy = line_happy[:-1]
+            row1 = f"{c1}{c2}{line_happy[:13].ljust(13)}"
+        row2 = _pad("BIRTHDAY")
+        row3 = _pad(name.center(NOTE_WIDTH) if len(name) < NOTE_WIDTH else name[:NOTE_WIDTH])
     else:
-        row3 = name[:NOTE_WIDTH]
-    row3 = _pad(row3)
-
-    # Optional tiny status if not today and room — prefer name only on birthday
-    # Keep pure celebratory layout when today
-    if not is_today and days_until == 1:
-        # Tomorrow: still show name; status not needed on Note
-        pass
+        line = " NEXT"
+        row1 = f"{c1}{c2}{line[:13].ljust(13)}"
+        while _tile_len(row1) > NOTE_WIDTH:
+            line = line[:-1]
+            row1 = f"{c1}{c2}{line[:13].ljust(13)}"
+        # Row2: BIRTHDAY + forename if room, else forename alone
+        r2 = f"BIRTHDAY {name}" if len(f"BIRTHDAY {name}") <= NOTE_WIDTH else name[:NOTE_WIDTH]
+        row2 = _pad(r2)
+        if days_until == 1:
+            row3 = _pad("IN 1 DAY")
+        else:
+            row3 = _pad(f"IN {days_until} DAYS"[:NOTE_WIDTH])
 
     block = f"{row1}\n{row2}\n{row3}"
     return block, row1, row2, row3, c1, c2
 
 
 def _happy_block(forename: str) -> str:
-    """Single-line style block: Happy Birthday [forename] (for templates)."""
+    """Happy Birthday [forename] — for today's birthday."""
     fn = (forename or "Friend").strip()
-    msg = f"Happy Birthday {fn}"
-    return msg[:60]
+    return f"Happy Birthday {fn}"[:60]
+
+
+def _next_birthday_block(forename: str, days_until: int) -> str:
+    """next birthday is [forename] in [n] days"""
+    fn = (forename or "Friend").strip()
+    if days_until == 1:
+        msg = f"next birthday is {fn} in 1 day"
+    else:
+        msg = f"next birthday is {fn} in {days_until} days"
+    return msg[:80]
 
 
 class BirthdayWishesPlugin(PluginBase):
@@ -343,7 +385,18 @@ class BirthdayWishesPlugin(PluginBase):
             enriched = []
             for i, p in enumerate(people):
                 du = _days_until(p["day"], p["month"], today)
-                enriched.append({**p, "days_until": du, "is_today": du == 0, "index": i})
+                occ = _next_occurrence(p["day"], p["month"], today)
+                enriched.append(
+                    {
+                        **p,
+                        "days_until": du,
+                        "is_today": du == 0,
+                        "index": i,
+                        "date_short": _format_short_date(occ),
+                        "date_long": _format_long_date(occ),
+                        "occurrence": occ,
+                    }
+                )
 
             today_list = [p for p in enriched if p["is_today"]]
             future = sorted(
@@ -374,10 +427,25 @@ class BirthdayWishesPlugin(PluginBase):
             block = f"{r1}\n{r2}\n{r3}"
 
             happy = _happy_block(pick["forename"])
-            # Note-friendly happy lines (≤15 each)
-            happy_r1 = _pad("HAPPY BIRTHDAY")
-            happy_r2 = _pad(pick["forename"].upper()[:15])
-            happy_r3 = _pad("" if pick["is_today"] else f"IN {pick['days_until']}D")
+            next_block = _next_birthday_block(pick["forename"], pick["days_until"])
+            # Primary display sentence: celebrate today, otherwise next-birthday text
+            if pick["is_today"]:
+                display_block = happy
+            else:
+                display_block = next_block
+
+            # Note-friendly happy / next lines (≤15 each)
+            if pick["is_today"]:
+                happy_r1 = _pad("HAPPY BIRTHDAY")
+                happy_r2 = _pad(pick["forename"].upper()[:15])
+                happy_r3 = _pad("")
+            else:
+                happy_r1 = _pad("NEXT BIRTHDAY")
+                happy_r2 = _pad(pick["forename"].upper()[:15])
+                if pick["days_until"] == 1:
+                    happy_r3 = _pad("IN 1 DAY")
+                else:
+                    happy_r3 = _pad(f"IN {pick['days_until']} DAYS"[:15])
 
             # All people for array variable
             people_out = []
@@ -391,6 +459,8 @@ class BirthdayWishesPlugin(PluginBase):
                         "month": p["month_str"][:2],
                         "month_name": p["month_name"][:10],
                         "days_until": str(p["days_until"]),
+                        "date_short": p["date_short"][:12],
+                        "date_long": p["date_long"][:20],
                         "is_today": "YES" if p["is_today"] else "NO",
                     }
                 )
@@ -406,6 +476,8 @@ class BirthdayWishesPlugin(PluginBase):
                 "is_today": "YES" if pick["is_today"] else "NO",
                 "has_birthday": "YES",
                 "days_until": str(pick["days_until"]),
+                "date_short": pick["date_short"][:12],
+                "date_long": pick["date_long"][:20],
                 "color": c1,
                 "color2": c2,
                 "note_row1": r1,
@@ -414,6 +486,8 @@ class BirthdayWishesPlugin(PluginBase):
                 "note_block": block,
                 "happy_birthday": happy[:45],
                 "happy_block": happy[:45],
+                "next_birthday_block": next_block[:80],
+                "display_block": display_block[:80],
                 "happy_row1": happy_r1,
                 "happy_row2": happy_r2,
                 "happy_row3": happy_r3,
